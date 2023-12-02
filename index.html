@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Leitor de QR code</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.0.0/jsQR.js"></script>
+</head>
+<body>
+  <video id="video" width="300" height="200" autoplay></video>
+  <canvas id="canvas" width="300" height="200" style="display: none;"></canvas>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(function(stream) {
+        video.srcObject = stream;
+        video.play();
+      })
+      .catch(function(err) {
+        console.log("Erro ao acessar a câmera: " + err);
+      });
+
+    video.addEventListener('play', function() {
+      const loop = setInterval(function() {
+        if (!video.paused && !video.ended) {
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (code) {
+            console.log("QR code detectado: " + code.data);
+            clearInterval(loop);
+          }
+        }
+      }, 100);
+    });
+  </script>
+</body>
+</html>
